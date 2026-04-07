@@ -32,7 +32,7 @@ pipeline {
             steps {
                 script {
                     echo "Building Docker image ${REGISTRY_NAME}/${IMAGE_NAME}:${env.BUILD_ID}"
-                    bat "docker build -t ${REGISTRY_NAME}/${IMAGE_NAME}:${env.BUILD_ID} -t ${REGISTRY_NAME}/${IMAGE_NAME}:latest ."
+                    sh "docker build -t ${REGISTRY_NAME}/${IMAGE_NAME}:${env.BUILD_ID} -t ${REGISTRY_NAME}/${IMAGE_NAME}:latest ."
                 }
             }
         }
@@ -42,9 +42,9 @@ pipeline {
                 script {
                     echo "Pushing image to ACR..."
                     withCredentials([usernamePassword(credentialsId: env.ACR_CRED_ID, passwordVariable: 'ACR_PASSWORD', usernameVariable: 'ACR_USERNAME')]) {
-                        bat "echo %ACR_PASSWORD% | docker login ${REGISTRY_NAME} -u %ACR_USERNAME% --password-stdin"
-                        bat "docker push ${REGISTRY_NAME}/${IMAGE_NAME}:${env.BUILD_ID}"
-                        bat "docker push ${REGISTRY_NAME}/${IMAGE_NAME}:latest"
+                        sh "echo \$ACR_PASSWORD | docker login ${REGISTRY_NAME} -u \$ACR_USERNAME --password-stdin"
+                        sh "docker push ${REGISTRY_NAME}/${IMAGE_NAME}:${env.BUILD_ID}"
+                        sh "docker push ${REGISTRY_NAME}/${IMAGE_NAME}:latest"
                     }
                 }
             }
@@ -61,22 +61,22 @@ pipeline {
                                                            subscriptionIdVariable: 'AZURE_SUBSCRIPTION_ID')]) {
                         
                         // Login to Azure using Service Principal
-                        bat 'az login --service-principal -u %AZURE_CLIENT_ID% -p %AZURE_CLIENT_SECRET% -t %AZURE_TENANT_ID%'
-                        bat 'az account set --subscription %AZURE_SUBSCRIPTION_ID%'
+                        sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t $AZURE_TENANT_ID'
+                        sh 'az account set --subscription $AZURE_SUBSCRIPTION_ID'
                         
                         // Update the Web App to use the new container image
-                        bat """
-                            az webapp config container set ^
-                                --name ${APP_SERVICE_NAME} ^
-                                --resource-group ${RESOURCE_GROUP} ^
-                                --docker-custom-image-name ${REGISTRY_NAME}/${IMAGE_NAME}:${env.BUILD_ID} ^
-                                --docker-registry-server-url https://${REGISTRY_NAME} ^
-                                --docker-registry-server-user %ACR_USERNAME% ^
-                                --docker-registry-server-password %ACR_PASSWORD%
+                        sh """
+                            az webapp config container set \\
+                                --name ${APP_SERVICE_NAME} \\
+                                --resource-group ${RESOURCE_GROUP} \\
+                                --docker-custom-image-name ${REGISTRY_NAME}/${IMAGE_NAME}:${env.BUILD_ID} \\
+                                --docker-registry-server-url https://${REGISTRY_NAME} \\
+                                --docker-registry-server-user \$ACR_USERNAME \\
+                                --docker-registry-server-password \$ACR_PASSWORD
                         """
                         
                         // Restart App Service
-                        bat "az webapp restart --name ${APP_SERVICE_NAME} --resource-group ${RESOURCE_GROUP}"
+                        sh "az webapp restart --name ${APP_SERVICE_NAME} --resource-group ${RESOURCE_GROUP}"
                     }
                 }
             }
