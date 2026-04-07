@@ -1,7 +1,6 @@
 import os
 import re
 import math
-import gdown
 import torch
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -16,7 +15,6 @@ app = FastAPI(
 
 # ---- Settings & Setup ----
 MODEL_DIR = "./checkpoint-31074"
-GDRIVE_FOLDER_ID = "19fI48zz8Ch-9K6JyCpERQYtk1PlvqN3J"
 MAX_LENGTH = 512
 
 model = None
@@ -36,15 +34,7 @@ def load_resources():
     global model, tokenizer
     print(f"Using device: {device}")
     
-    # Download weights if not present
-    if not os.path.exists(MODEL_DIR) or not os.listdir(MODEL_DIR):
-        print(f"Model not found in {MODEL_DIR}. Downloading from Google Drive...")
-        # Note: gdown.download_folder requires the gdown package and folder ID
-        gdown.download_folder(id=GDRIVE_FOLDER_ID, output=MODEL_DIR, quiet=False, use_cookies=False)
-
-    
-    # Let's see if model is already there (or we rely on Jenkins to have populated it)
-    # We will try loading it. If it fails, the app will log an error.
+    # Just load the model directly! It is already inside the container now.
     try:
         print(f"Loading T5 tokenizer and model from {MODEL_DIR}...")
         tokenizer = T5Tokenizer.from_pretrained(MODEL_DIR)

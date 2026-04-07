@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /app/model_weights
 
 # Copy application source code
+COPY checkpoint-31074 /app/checkpoint-31074
 COPY app.py .
 
 # Expose port for FastAPI
