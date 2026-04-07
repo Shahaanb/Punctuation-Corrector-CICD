@@ -1,3 +1,7 @@
-checkpoint-31074/
+# Ignore heavy model files but track configs using Git
+checkpoint-31074/*.safetensors
+checkpoint-31074/*.pt
+checkpoint-31074/*.pth
+checkpoint-31074/*.bin
 __pycache__/
 *.pyc
